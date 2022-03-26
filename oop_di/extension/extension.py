@@ -1,8 +1,8 @@
 from abc import ABC, abstractmethod
 from typing import Any, Callable, Dict, List
 
-from .definition import Definition
-from .types import NameType
+from ..definition import Definition
+from ..types import NameType
 
 
 class Extension(ABC):

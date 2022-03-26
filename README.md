@@ -43,6 +43,20 @@ def something_else(*, wont_inject: UnknownService, service: SomeService):
 something_else(wont_inject=UnknownService())
 ```
 
+Extensions
+===
+
+EnvExtension
+---
+
+You can add all environment variables to your container by adding `EnvExtension` to the container definition:
+
+```python
+container_definition = ContainerDefinition()
+container_definition.add_extension(EnvExtension())
+```
+
+
 Why not `python-dependency-injector`?
 ===
 
