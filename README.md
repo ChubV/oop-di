@@ -56,6 +56,38 @@ container_definition = ContainerDefinition()
 container_definition.add_extension(EnvExtension())
 ```
 
+JsonExtension
+---
+
+You can add define parameters/aliases/services in a JSON file.
+Check `examples/s4_json.py` for more details.
+
+```python
+container_definition = ContainerDefinition()
+container_definition.add_extension(JsonExtension(Path(__file__).parent / "config.json"))
+```
+
+Config example:
+
+```json
+{
+  "parameters": {
+    "test1_email": "test@example.com",
+    "test2_email": "test2@example.com",
+    "test3_email": "test3@example.com"
+  },
+  "services": {
+    "examples.s4_module": [
+      {"class": "ProductService"},
+      {"class": "Mailer", "name": "m1","tags": ["admin_mailers"], "parameters": {"from_email": "test1_email"}},
+      {"class": "Mailer", "name": "m2","tags": ["admin_mailers"], "parameters": {"from_email": "test2_email"}},
+      {"class": "Mailer", "name": "m3","tags": ["admin_mailers"], "parameters": {"from_email": "test3_email"}},
+      {"class": "MultiMailer", "name": "@examples.s4_module.MailerInterface","parameters": {"mailers": "#admin_mailers"}}
+    ]
+  }
+}
+```
+
 
 Why not `python-dependency-injector`?
 ===
@@ -74,6 +106,7 @@ What I don't like in `python-dependency-injector` and tried to mitigate in this 
 
 Check `examples/` folder for more info:
 
-- `01-simple.py` - shows the basics: how to define services and how to inject the services somewhere.
-- `02-extensions.py` - how to split the definitions between modules.
-- `03-tags.py` - how to use tags to group services.
+- `s1_simple.py` - shows the basics: how to define services and how to inject the services somewhere.
+- `s2_extensions.py` - how to split the definitions between modules.
+- `s3_tags.py` - how to use tags to group services.
+- `s4_json.py` - JsonExtension usage example.

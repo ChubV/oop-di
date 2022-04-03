@@ -26,7 +26,7 @@ setup(
     long_description_content_type="text/markdown",
     keywords="utils",
     python_requires=">=3.9",
-    packages=find_packages(exclude=("tests",)),
+    packages=find_packages(exclude=("tests", "examples")),
     install_requires=None,
     include_package_data=True,
     tests_require=["pytest", "pytest-asyncio"],
