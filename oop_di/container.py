@@ -48,11 +48,15 @@ class Container:
                 self._by_tag[tag] = [name]
 
     def get_tagged(self, tag: str):
+        return_dict = tag.startswith("#")
+        if return_dict:
+            tag = tag[1:]
+
         names = self._by_tag.get(tag)
         if not names:
             return []
 
-        return [self.get(name) for name in names]
+        return {name: self.get(name) for name in names} if return_dict else [self.get(name) for name in names]
 
     def inject(self, *, ignore_missing=True, **bindings):
         container = self

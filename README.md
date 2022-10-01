@@ -108,5 +108,5 @@ Check `examples/` folder for more info:
 
 - `s1_simple.py` - shows the basics: how to define services and how to inject the services somewhere.
 - `s2_extensions.py` - how to split the definitions between modules.
-- `s3_tags.py` - how to use tags to group services.
+- `s3_tags.py`, `s3_tags2_dict.py` - how to use tags to group services (list or dict grouping is possible).
 - `s4_json.py` - JsonExtension usage example.
