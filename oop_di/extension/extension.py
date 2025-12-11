@@ -1,41 +1,41 @@
 from abc import ABC, abstractmethod
-from typing import Any, Callable, Dict, List
+from collections.abc import Callable
 
 from ..definition import Definition
-from ..types import NameType
+from ..types import NameType, ParamType
 
 
 class Extension(ABC):
-    def __init__(self):
-        self._definitions: Dict[NameType, Definition] = {}
-        self._params: Dict[NameType, Any] = {}
-        self._aliases: Dict[NameType, NameType] = {}
+    def __init__(self) -> None:
+        self._definitions: dict[NameType, Definition] = {}
+        self._params: dict[NameType, ParamType] = {}
+        self._aliases: dict[NameType, NameType] = {}
         self.define()
 
-    def add_alias(self, alias: NameType, service: NameType):
+    def add_alias(self, alias: NameType, service: NameType) -> None:
         self._aliases[alias] = service
 
-    def add_service(self, service: type, *, tags: List[str] = [], is_singleton=True, **bind):
-        self._definitions[service] = Definition(service, service, bind, is_singleton=is_singleton, tags=tags)
+    def add_service(self, service: type, *, tags: list[str] | None = None, is_singleton: bool = True, **bind: NameType) -> None:
+        self._definitions[service] = Definition(service, service, bind, is_singleton=is_singleton, tags=tags or [])
 
-    def add_named_service(self, name: NameType, service: type, *, tags: List[str] = [], is_singleton=True, **bind):
-        self._definitions[name] = Definition(name, service, bind, is_singleton=is_singleton, tags=tags)
+    def add_named_service(self, name: NameType, service: type, *, tags: list[str] | None = None, is_singleton: bool = True, **bind: NameType) -> None:
+        self._definitions[name] = Definition(name, service, bind, is_singleton=is_singleton, tags=tags or [])
 
-    def add_factory(self, name: NameType, factory: Callable, *, tags: List[str] = [], is_singleton=True, **bind):
-        self._definitions[name] = Definition(name, factory, bind, is_singleton=is_singleton, tags=tags)
+    def add_factory(self, name: NameType, factory: Callable[..., object], *, tags: list[str] | None = None, is_singleton: bool = True, **bind: NameType) -> None:
+        self._definitions[name] = Definition(name, factory, bind, is_singleton=is_singleton, tags=tags or [])
 
-    def add_param(self, name: NameType, value: Any):
+    def add_param(self, name: NameType, value: ParamType) -> None:
         self._params[name] = value
 
-    def get_definitions(self) -> Dict[NameType, Definition]:
+    def get_definitions(self) -> dict[NameType, Definition]:
         return self._definitions
 
-    def get_aliases(self) -> Dict[NameType, NameType]:
+    def get_aliases(self) -> dict[NameType, NameType]:
         return self._aliases
 
-    def get_params(self) -> Dict[NameType, Any]:
+    def get_params(self) -> dict[NameType, ParamType]:
         return self._params
 
     @abstractmethod
-    def define(self):
+    def define(self) -> None:
         ...

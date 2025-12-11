@@ -11,7 +11,6 @@ class TestJsonExtension:
         params = extension.get_params()
         aliases = extension.get_aliases()
         services = extension.get_definitions()
-
         assert params == {"ololo": "trololo", "xxx": "yyy"}
         assert aliases == {"zzz": "xxx", "s2": Service2}
         service1 = services["s1"]

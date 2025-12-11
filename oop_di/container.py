@@ -1,28 +1,27 @@
-import inspect
+from collections import defaultdict
+from collections.abc import Callable
 from functools import partial
-from typing import Any, Callable, Dict, List
+import inspect
+from typing import cast
 
 from .service_builder import ServiceBuilder
-from .types import NameType
+from .types import NameType, ParamType
 
 
 class Container:
-    def __init__(self, params):
-        self._services: Dict[NameType, ServiceBuilder] = {}
-        self._params: Dict[NameType, Any] = params
-        self._aliases: Dict[NameType, NameType] = {}
-        self._by_tag: Dict[str, List[NameType]] = {}
+    def __init__(self, params: dict[NameType, ParamType]) -> None:
+        self._services: dict[NameType, ServiceBuilder] = {}
+        self._params: dict[NameType, ParamType] = params
+        self._aliases: dict[NameType, NameType] = {}
+        self._by_tag: dict[str, list[NameType]] = defaultdict(list)
 
-    def add_alias(self, alias: NameType, service: NameType):
+    def add_alias(self, alias: NameType, service: NameType) -> None:
         self._aliases[alias] = service
 
-    def has(self, name: NameType):
-        if self.get(name, raise_if_none=False):
-            return True
+    def has(self, name: NameType) -> bool:
+        return bool(self.get(name, raise_if_none=False))
 
-        return False
-
-    def get(self, name: NameType, raise_if_none: bool = True):
+    def get(self, name: NameType, *, raise_if_none: bool = True) -> object:
         if isinstance(name, str) and name.startswith("#"):
             return self.get_tagged(name[1:])
         if alias := self._aliases.get(name):
@@ -39,15 +38,14 @@ class Container:
 
         return None
 
-    def add_service(self, name: NameType, factory: Callable[[], Any], is_singleton: bool = True, tags: List[str] = []):
+    def add_service(self, name: NameType, factory: Callable[[], object], *, is_singleton: bool = True, tags: list[str] | None = None) -> None:
         self._services[name] = ServiceBuilder(factory, is_singleton=is_singleton)
+        if not tags:
+            return
         for tag in tags:
-            try:
-                self._by_tag[tag].append(name)
-            except KeyError:
-                self._by_tag[tag] = [name]
+            self._by_tag[tag].append(name)
 
-    def get_tagged(self, tag: str):
+    def get_tagged(self, tag: str) -> list[object] | dict[NameType, object]:
         return_dict = tag.startswith("#")
         if return_dict:
             tag = tag[1:]
@@ -58,10 +56,10 @@ class Container:
 
         return {name: self.get(name) for name in names} if return_dict else [self.get(name) for name in names]
 
-    def inject(self, *, ignore_missing=True, **bindings):
+    def inject(self, *, ignore_missing: bool = True, **bindings: NameType) -> Callable[..., object]:
         container = self
 
-        def wrapper(f):
+        def wrapper(f: Callable[..., object]) -> Callable[..., object]:
             args = inspect.getfullargspec(f)
             kwargs = {}
             for arg_name in args.kwonlyargs:
@@ -72,7 +70,7 @@ class Container:
                     continue
 
                 try:
-                    value = container.get(args.annotations[arg_name], raise_if_none=False) or container.get(
+                    value = container.get(cast("NameType", args.annotations[arg_name]), raise_if_none=False) or container.get(
                         arg_name, raise_if_none=not ignore_missing
                     )
                     if value:

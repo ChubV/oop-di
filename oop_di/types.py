@@ -1,3 +1,2 @@
-from typing import Union
-
-NameType = Union[str, type]
+NameType = str | type
+ParamType = str | bool | int | float | list["ParamType"] | dict[str, "ParamType"] | None

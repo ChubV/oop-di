@@ -1,13 +1,13 @@
-from typing import Callable
+from collections.abc import Callable
 
 
 class ServiceBuilder:
-    def __init__(self, factory: Callable, *, is_singleton: bool):
+    def __init__(self, factory: Callable[..., object], *, is_singleton: bool) -> None:
         self.factory = factory
         self.is_singleton = is_singleton
         self.instance = None
 
-    def get_instance(self):
+    def get_instance(self) -> object:
         if not self.is_singleton:
             return self.factory()
         if self.instance:
