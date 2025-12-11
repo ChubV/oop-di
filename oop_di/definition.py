@@ -1,14 +1,13 @@
-from typing import Callable, Dict, List
+from collections.abc import Callable
+from dataclasses import dataclass
 
 from .types import NameType
 
 
+@dataclass
 class Definition:
-    def __init__(
-        self, name: NameType, factory: Callable, bindings: Dict[str, NameType], is_singleton: bool, tags: List[str]
-    ):
-        self.name = name
-        self.factory = factory
-        self.bindings = bindings
-        self.is_singleton = is_singleton
-        self.tags = tags
+    name: NameType
+    factory: Callable[..., object]
+    bindings: dict[str, NameType]
+    is_singleton: bool
+    tags: list[str]

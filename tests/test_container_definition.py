@@ -1,6 +1,7 @@
 import pytest
+
 from oop_di import ContainerDefinition, Extension
-from oop_di.exception import CircularImportException, DefinitionNotFound
+from oop_di.exception import CircularImportError, DefinitionNotFoundError
 
 
 class SimpleTestService:
@@ -23,6 +24,16 @@ class CircularImportProblem1:
 
 def simple_factory(simple: SimpleTestService):
     return isinstance(simple, SimpleTestService)
+
+
+class TagsInjected:
+    def __init__(self, services: list[object]):
+        self.count = len(services)
+
+
+class InjectTagsInjected:
+    def __init__(self, ti: TagsInjected):
+        self.ti = ti
 
 
 def simple_factory_for_tagged(tagged):
@@ -54,12 +65,12 @@ class TestContainerDefinition:
 
     def test_it_should_detect_circular_import_problem(self):
         self.sut.add_named_service("CircularImportProblem1", CircularImportProblem1)
-        with pytest.raises(CircularImportException):
+        with pytest.raises(CircularImportError):
             self.sut.compile()
 
     def test_it_should_notify_if_dependency_not_registered(self):
         self.sut.add_service(DependentService)
-        with pytest.raises(DefinitionNotFound):
+        with pytest.raises(DefinitionNotFoundError):
             self.sut.compile()
 
     def test_it_should_compile_factory(self):
@@ -71,7 +82,7 @@ class TestContainerDefinition:
     def test_it_should_compile_param(self):
         self.sut.add_param("test", "y")
         container = self.sut.compile()
-        assert "y" == container.get("test")
+        assert container.get("test") == "y"
 
     def test_it_should_inject_by_name_if_by_type_fails(self):
         self.sut.add_service(DependentService)
@@ -103,14 +114,24 @@ class TestContainerDefinition:
         assert isinstance(container.get("x"), SimpleTestService)
 
     def test_it_should_inject_tagged_services(self):
+        self.sut.add_factory("threetags", simple_factory_for_tagged, tagged="#tag1")
         self.sut.add_named_service("x", SimpleTestService, tags=["tag1", "tag2"])
         self.sut.add_named_service("y", SimpleTestService, tags=["tag1"])
         self.sut.add_named_service("z", SimpleTestService, tags=["tag1", "tag2"])
-        self.sut.add_factory("threetags", simple_factory_for_tagged, tagged="#tag1")
         self.sut.add_factory("twotags", simple_factory_for_tagged, tagged="#tag2")
         container = self.sut.compile()
-        assert 3 == container.get("threetags")
-        assert 2 == container.get("twotags")
+        assert container.get("threetags") == 3
+        assert container.get("twotags") == 2
+
+    def test_it_should_build_tagged_as_deps(self):
+        self.sut.add_service(InjectTagsInjected)
+        self.sut.add_service(TagsInjected, services="#tag1")
+
+        self.sut.add_service(SimpleTestService, tags=["tag1"])
+
+        container = self.sut.compile()
+        ti: InjectTagsInjected = container.get(InjectTagsInjected)
+        assert ti.ti.count == 1
 
     def test_it_should_combine_extensions(self):
         class Ext1(Extension):
@@ -127,4 +148,4 @@ class TestContainerDefinition:
 
         container = self.sut.compile()
         assert isinstance(container.get(DependentService), DependentService)
-        assert 2 == container.get("twotags")
+        assert container.get("twotags") == 2

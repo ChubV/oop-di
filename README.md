@@ -11,12 +11,18 @@ This package provides you with the set of components to automate dependency inje
 Installation
 ===
 
+Add `oop-di` as a dependency in `pyproject.toml` of your project. Or, do
+
 `pip install oop-di`
 
 Usage
 ===
 
 To make it work do the following steps:
+
+- provide definitions for all the services
+- compile the container
+- use container to inject services
 
 ```python
 # Init the `ContainerDefinition` component

@@ -1,10 +1,10 @@
-class DependencyInjectionException(Exception):
+class DependencyInjectionError(Exception):
     ...
 
 
-class CircularImportException(DependencyInjectionException):
+class CircularImportError(DependencyInjectionError):
     ...
 
 
-class DefinitionNotFound(DependencyInjectionException):
+class DefinitionNotFoundError(DependencyInjectionError):
     ...
