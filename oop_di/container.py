@@ -2,10 +2,13 @@ from collections import defaultdict
 from collections.abc import Callable
 from functools import partial
 import inspect
-from typing import cast
+from typing import ParamSpec, TypeVar, cast
 
 from .service_builder import ServiceBuilder
 from .types import NameType, ParamType
+
+P = ParamSpec("P")
+R = TypeVar("R")
 
 
 class Container:
@@ -56,10 +59,10 @@ class Container:
 
         return {name: self.get(name) for name in names} if return_dict else [self.get(name) for name in names]
 
-    def inject(self, *, ignore_missing: bool = True, **bindings: NameType) -> Callable[..., object]:
+    def inject(self, *, ignore_missing: bool = True, **bindings: NameType) -> Callable[[Callable[P, R]], Callable[..., R]]:
         container = self
 
-        def wrapper(f: Callable[..., object]) -> Callable[..., object]:
+        def wrapper(f: Callable[P, R]) -> Callable[..., R]:
             args = inspect.getfullargspec(f)
             kwargs = {}
             for arg_name in args.kwonlyargs:
