@@ -13,6 +13,7 @@ from .types import NameType, ParamType
 class ContainerDefinition:
     def __init__(self) -> None:
         self._definitions: dict[NameType, Definition] = {}
+        self._shadow_definitions: dict[NameType, Definition] = {}
         self._params: dict[NameType, ParamType] = {}
         self._in_compile: dict[NameType, bool] = {}
         self._aliases: dict[NameType, NameType] = {}
@@ -38,6 +39,7 @@ class ContainerDefinition:
         self._params.update(extension.get_params())
 
     def compile(self) -> Container:
+        self._shadow_definitions = {}
         container = Container(self._params)
         for name in self._definitions:
             self._compile_definition(name, container)
@@ -53,9 +55,13 @@ class ContainerDefinition:
         if name in self._params:
             return None
 
-        definition = self._definitions.get(name)
+        definition = self._definitions.get(name, self._shadow_definitions.get(name))
         if not definition:
-            raise DefinitionNotFoundError(f"No definition for {name} found")
+            if isinstance(name, type) and name.__module__ != "builtins":
+                definition = Definition(name, name, bindings={}, is_singleton=True, tags=[])
+                self._shadow_definitions[name] = definition
+            else:
+                raise DefinitionNotFoundError(f"No definition for {name} found")
         if self._in_compile.get(definition.name, None):
             raise CircularImportError("Circular import error")
 

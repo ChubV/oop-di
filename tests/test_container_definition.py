@@ -12,6 +12,11 @@ class DimpleTestService(SimpleTestService):
     ...
 
 
+class ServiceWithUnknownDep:
+    def __init__(self, name: str):
+        self.name = name
+
+
 class DependentService:
     def __init__(self, simple: SimpleTestService):
         self.simple = simple
@@ -69,7 +74,7 @@ class TestContainerDefinition:
             self.sut.compile()
 
     def test_it_should_notify_if_dependency_not_registered(self):
-        self.sut.add_service(DependentService)
+        self.sut.add_service(ServiceWithUnknownDep)
         with pytest.raises(DefinitionNotFoundError):
             self.sut.compile()
 
@@ -149,3 +154,8 @@ class TestContainerDefinition:
         container = self.sut.compile()
         assert isinstance(container.get(DependentService), DependentService)
         assert container.get("twotags") == 2
+
+    def test_it_should_try_to_autowire_unknown_services(self):
+        self.sut.add_factory("test", simple_factory)
+        container = self.sut.compile()
+        assert container.get("test")
